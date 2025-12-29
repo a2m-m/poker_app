@@ -1,4 +1,4 @@
-import { startRound } from './init.ts'
+import { startHand, startRound } from './init.ts'
 import { nextStage } from './rules.ts'
 import type { Action, Game, Round, Table } from './types.ts'
 
@@ -38,10 +38,48 @@ const getRoundStartPlayerId = (state: Game | { players: Game['players']; table: 
 
 const advanceRound = (state: Game): Game => startRound(state, nextStage(state.table.round))
 
+const settleHandAndStartNext = (state: Game, winnerId: string): Game => {
+  const winnerExists = state.players.some((player) => player.id === winnerId)
+
+  if (!winnerExists) {
+    throw new Error('勝者のプレイヤーが見つかりません')
+  }
+
+  const potAmount = state.table.pot
+
+  const resetPlayers = state.players.map((player) => ({
+    ...player,
+    stack: player.stack + (player.id === winnerId ? potAmount : 0),
+    betThisRound: 0,
+    status: 'ACTIVE' as const,
+  }))
+
+  const nextButtonIndex =
+    resetPlayers.length > 0
+      ? (state.table.buttonIndex + 1) % resetPlayers.length
+      : state.table.buttonIndex
+
+  const nextGame: Game = {
+    ...state,
+    players: resetPlayers,
+    table: {
+      ...state.table,
+      pot: 0,
+      currentBet: 0,
+      currentPlayerId: '',
+      lastAggressorId: undefined,
+      buttonIndex: nextButtonIndex,
+    },
+  }
+
+  return startHand(nextGame)
+}
+
 export type GameAction =
   | { type: 'SET_TABLE_NAME'; name: string }
   | { type: 'ADVANCE_STAGE'; nextStage: Round }
   | { type: 'UPDATE_POT'; pot: number }
+  | { type: 'RESOLVE_SHOWDOWN'; winnerId: string }
   | { type: 'PLAYER_ACTION'; action: Action }
 
 export const applyAction = (
@@ -55,6 +93,13 @@ export const applyAction = (
       return { ...state, table: { ...state.table, round: action.nextStage } }
     case 'UPDATE_POT':
       return { ...state, table: { ...state.table, pot: action.pot } }
+    case 'RESOLVE_SHOWDOWN': {
+      if (state.table.round !== 'SHOWDOWN') {
+        throw new Error('ショーダウン中のみ勝者を決定できます')
+      }
+
+      return settleHandAndStartNext(state, action.winnerId)
+    }
     case 'PLAYER_ACTION': {
       const currentIndex = state.players.findIndex(
         (player) => player.id === state.table.currentPlayerId,
@@ -164,32 +209,12 @@ export const applyAction = (
       const activePlayers = players.filter((p) => p.status === 'ACTIVE')
 
       if (activePlayers.length <= 1) {
-        const winner = activePlayers[0]
-        const potAmount = table.pot
-
-        const settledPlayers = players.map((player) => {
-          if (winner && player.id === winner.id) {
-            return {
-              ...player,
-              stack: player.stack + potAmount,
-              betThisRound: 0,
-            }
-          }
-          return { ...player, betThisRound: 0 }
-        })
-
-        return {
-          ...state,
-          players: settledPlayers,
-          table: {
-            ...table,
-            pot: 0,
-            currentBet: 0,
-            currentPlayerId: '',
-            lastAggressorId: undefined,
-            round: 'SHOWDOWN',
-          },
+        const winnerId = activePlayers[0]?.id
+        if (!winnerId) {
+          throw new Error('勝者を決定できません')
         }
+
+        return settleHandAndStartNext({ ...state, players, table }, winnerId)
       }
 
       table.currentBet = players.reduce(
