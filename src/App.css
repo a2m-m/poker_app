@@ -328,6 +328,23 @@
   padding: 14px;
 }
 
+.stage-guide {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(106, 161, 255, 0.35);
+  background: rgba(106, 161, 255, 0.08);
+  color: #e8f1ff;
+  display: grid;
+  gap: 4px;
+  max-width: 360px;
+}
+
+.stage-guide__message {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 @media (max-width: 960px) {
   .top-bar {
     grid-template-columns: 1fr;

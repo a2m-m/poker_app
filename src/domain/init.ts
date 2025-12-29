@@ -121,5 +121,10 @@ export const startHand = (game: Game): Game => {
   const afterSmallBlind = applyBlind(preflopReady, sbIndex, preflopReady.table.sb)
   const afterBigBlind = applyBlind(afterSmallBlind, bbIndex, afterSmallBlind.table.bb)
 
-  return afterBigBlind
+  const bigBlindPlayerId = afterBigBlind.players[bbIndex]?.id
+
+  return {
+    ...afterBigBlind,
+    table: { ...afterBigBlind.table, lastAggressorId: bigBlindPlayerId },
+  }
 }

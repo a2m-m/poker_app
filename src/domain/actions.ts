@@ -1,4 +1,6 @@
-import type { Action, Game, Round } from './types.ts'
+import { startRound } from './init.ts'
+import { nextStage } from './rules.ts'
+import type { Action, Game, Round, Table } from './types.ts'
 
 const toCall = (state: Game, playerIndex: number): number => {
   const player = state.players[playerIndex]
@@ -21,6 +23,20 @@ const findNextActivePlayerId = (
 
   return undefined
 }
+
+const getRoundStartIndex = (
+  round: Round,
+  buttonIndex: number,
+  playerCount: number,
+) => (round === 'PREFLOP' ? buttonIndex + 3 : buttonIndex + 1) % Math.max(playerCount, 1)
+
+const getRoundStartPlayerId = (state: Game | { players: Game['players']; table: Table }) =>
+  findNextActivePlayerId(
+    state.players,
+    getRoundStartIndex(state.table.round, state.table.buttonIndex, state.players.length),
+  )
+
+const advanceRound = (state: Game): Game => startRound(state, nextStage(state.table.round))
 
 export type GameAction =
   | { type: 'SET_TABLE_NAME'; name: string }
@@ -183,6 +199,19 @@ export const applyAction = (
 
       const nextPlayerId =
         findNextActivePlayerId(players, (currentIndex + 1) % players.length) ?? ''
+
+      const allBetsMatched = activePlayers.every((player) => player.betThisRound === table.currentBet)
+      const roundStartPlayerId = getRoundStartPlayerId({ players, table })
+      const shouldAdvanceRound =
+        allBetsMatched &&
+        nextPlayerId !== '' &&
+        (table.lastAggressorId
+          ? nextPlayerId === table.lastAggressorId
+          : nextPlayerId === roundStartPlayerId)
+
+      if (shouldAdvanceRound) {
+        return advanceRound({ ...state, players, table })
+      }
 
       return {
         ...state,
