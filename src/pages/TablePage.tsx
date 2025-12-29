@@ -9,11 +9,14 @@ import type { PlayerCardProps } from '../components/PlayerCard.tsx'
 import { useGameState } from '../app/GameContext.tsx'
 import { getCurrentPlayer, toCall } from '../domain/selectors.ts'
 import type { Action, Round } from '../domain/types.ts'
+import Drawer from '../components/Drawer.tsx'
+import ActionLogPanel from '../components/ActionLogPanel.tsx'
 
 function TablePage() {
-  const { state, dispatch } = useGameState()
+  const { state, dispatch, logs } = useGameState()
   const [lastUtilityAction, setLastUtilityAction] = useState('未操作')
   const [lastAction, setLastAction] = useState('まだ行動がありません')
+  const [isLogOpen, setIsLogOpen] = useState(false)
 
   const currentPlayer = useMemo(() => getCurrentPlayer(state), [state])
   const activeShowdownPlayers = useMemo(
@@ -97,6 +100,12 @@ function TablePage() {
       judge: '判定ツール',
       settings: '設定',
     }
+    if (action === 'logs') {
+      setIsLogOpen(true)
+      setLastUtilityAction('ログを表示しています')
+      return
+    }
+
     setLastUtilityAction(`${actionLabel[action]}を開く準備ができています`)
   }
 
@@ -181,6 +190,14 @@ function TablePage() {
             <p className="label">最後のアクション</p>
             <p className="value">{lastAction}</p>
           </div>
+          <Drawer open={isLogOpen} title="アクションログ">
+            <ActionLogPanel entries={logs} />
+            <div className="drawer__footer">
+              <button type="button" className="ghost" onClick={() => setIsLogOpen(false)}>
+                閉じる
+              </button>
+            </div>
+          </Drawer>
         </aside>
       </div>
 
