@@ -12,6 +12,7 @@ import type { Action, Round } from '../domain/types.ts'
 import Drawer from '../components/Drawer.tsx'
 import ActionLogPanel from '../components/ActionLogPanel.tsx'
 import HandRankingsModal from '../components/HandRankingsModal.tsx'
+import HandJudgeModal from '../components/HandJudgeModal.tsx'
 
 function TablePage() {
   const { state, dispatch, logs } = useGameState()
@@ -19,6 +20,7 @@ function TablePage() {
   const [lastAction, setLastAction] = useState('まだ行動がありません')
   const [isLogOpen, setIsLogOpen] = useState(false)
   const [isHandRanksOpen, setIsHandRanksOpen] = useState(false)
+  const [isJudgeOpen, setIsJudgeOpen] = useState(false)
 
   const currentPlayer = useMemo(() => getCurrentPlayer(state), [state])
   const activeShowdownPlayers = useMemo(
@@ -111,6 +113,12 @@ function TablePage() {
     if (action === 'handRanks') {
       setIsHandRanksOpen(true)
       setLastUtilityAction('役一覧を表示しています')
+      return
+    }
+
+    if (action === 'judge') {
+      setIsJudgeOpen(true)
+      setLastUtilityAction('判定ツールを表示しています')
       return
     }
 
@@ -215,6 +223,7 @@ function TablePage() {
         pot={showdownPot}
         onConfirm={handleWinnerSelect}
       />
+      <HandJudgeModal open={isJudgeOpen} onClose={() => setIsJudgeOpen(false)} />
       <HandRankingsModal open={isHandRanksOpen} onClose={() => setIsHandRanksOpen(false)} />
     </div>
   )

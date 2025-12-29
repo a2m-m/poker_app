@@ -831,6 +831,72 @@
   justify-content: flex-end;
 }
 
+.alert {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.alert--error {
+  border-color: rgba(255, 159, 159, 0.6);
+  background: rgba(255, 159, 159, 0.08);
+}
+
+.alert--guide {
+  border-color: rgba(106, 161, 255, 0.45);
+  background: rgba(106, 161, 255, 0.08);
+}
+
+.alert__title {
+  margin: 0 0 4px;
+  font-weight: 800;
+}
+
+.alert__message {
+  margin: 0;
+}
+
+.alert__hint {
+  margin: 6px 0 0;
+  color: #b9c8e4;
+  font-size: 0.95rem;
+}
+
+.alert__list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: #ffdede;
+}
+
+.judge-result {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(106, 161, 255, 0.5);
+  background: linear-gradient(135deg, rgba(106, 161, 255, 0.14), rgba(255, 255, 255, 0.04));
+  display: grid;
+  gap: 4px;
+}
+
+.judge-result__label {
+  margin: 0;
+  color: #bcd7ff;
+  font-weight: 700;
+}
+
+.judge-result__value {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.judge-result__detail {
+  margin: 0;
+  color: #e8edf5;
+}
+
 .showdown-body {
   display: grid;
   gap: 12px;
