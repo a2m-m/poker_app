@@ -8,7 +8,7 @@ import { getCurrentPlayer, toCall } from '../domain/selectors.ts'
 import type { Action, Round } from '../domain/types.ts'
 
 function TablePage() {
-  const { state } = useGameState()
+  const { state, dispatch } = useGameState()
   const [lastUtilityAction, setLastUtilityAction] = useState('未操作')
   const [lastAction, setLastAction] = useState('まだ行動がありません')
 
@@ -40,6 +40,19 @@ function TablePage() {
     [state],
   )
 
+  const roundGuide = useMemo(() => {
+    switch (state.table.round) {
+      case 'FLOP':
+        return 'フロップを3枚めくってください'
+      case 'TURN':
+        return 'ターンを1枚めくってください'
+      case 'RIVER':
+        return 'リバーを1枚めくってください'
+      default:
+        return ''
+    }
+  }, [state.table.round])
+
   const handleUtilitySelect = (action: UtilityActionKey) => {
     const actionLabel: Record<UtilityActionKey, string> = {
       logs: 'ログ',
@@ -60,7 +73,13 @@ function TablePage() {
       FOLD: 'フォールド',
     }
 
-    setLastAction(`${actor} が ${actionLabel[action.type]} を選択しました`)
+    try {
+      dispatch({ type: 'ACTION_APPLY', payload: { type: 'PLAYER_ACTION', action } })
+      setLastAction(`${actor} が ${actionLabel[action.type]} を選択しました`)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '不明なエラーが発生しました'
+      setLastAction(`アクションに失敗しました: ${message}`)
+    }
   }
 
   return (
@@ -83,6 +102,12 @@ function TablePage() {
               <p className="lede">
                 プレイヤーグリッドの代わりに、現在の手番と To Call を確認できる ActionPanel を配置しています。
               </p>
+              {roundGuide && (
+                <div className="stage-guide" role="status">
+                  <p className="label">ガイド</p>
+                  <p className="stage-guide__message">{roundGuide}</p>
+                </div>
+              )}
             </div>
             <div className="placeholder-actions">
               <Link to="/" className="ghost">
