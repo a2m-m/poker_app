@@ -5,19 +5,13 @@ function SetupPage() {
     <div className="page">
       <header className="page-header">
         <p className="eyebrow">/setup</p>
-        <h1>ゲームセットアップ</h1>
-        <p className="lede">
-          プレイヤー人数やブラインドを確認するための準備ページです。
-        </p>
+        <h1>セットアップ</h1>
+        <p className="lede">ゲーム開始前の設定をここで行う予定です。</p>
       </header>
 
       <section className="info-card">
-        <h2>次のステップ</h2>
-        <ol className="step-list">
-          <li>プレイヤー情報を入力（後続タスクで実装）</li>
-          <li>ブラインドとテーブル名を決める</li>
-          <li>テーブル画面に進んでハンドを開始</li>
-        </ol>
+        <h2>プレースホルダー</h2>
+        <p>後続タスクでプレイヤー情報やブラインド設定を追加します。</p>
       </section>
 
       <div className="cta-row">

@@ -1,40 +1,27 @@
-import { useMemo, useState } from 'react'
-import ActionPanel from '../components/ActionPanel.tsx'
-import ConfirmDialog from '../components/ConfirmDialog.tsx'
-import PlayerGrid from '../components/PlayerGrid.tsx'
-import TopBar from '../components/TopBar.tsx'
+import { Link } from 'react-router-dom'
 
 function TablePage() {
-  const [lastAction, setLastAction] = useState<string | null>(null)
-  const [showConfirm, setShowConfirm] = useState(false)
-
-  const potSize = useMemo(() => 2400, [])
-
   return (
-    <div className="page table-page">
-      <TopBar tableName="Demo Table" stage="Preflop" pot={potSize} />
+    <div className="page">
+      <header className="page-header">
+        <p className="eyebrow">/table</p>
+        <h1>テーブル</h1>
+        <p className="lede">ゲーム進行用の画面をここに実装する予定です。</p>
+      </header>
 
-      <PlayerGrid />
+      <section className="info-card">
+        <h2>プレースホルダー</h2>
+        <p>ドメインロジックと連携した UI を後続タスクで追加します。</p>
+      </section>
 
-      <ActionPanel
-        onAction={(action) => {
-          setLastAction(action)
-          setShowConfirm(true)
-        }}
-      />
-
-      <ConfirmDialog
-        open={showConfirm}
-        title="アクションを記録"
-        description={
-          lastAction
-            ? `${lastAction} を選択しました。`
-            : 'アクションを選択してください。'
-        }
-        confirmLabel="閉じる"
-        onConfirm={() => setShowConfirm(false)}
-        onCancel={() => setShowConfirm(false)}
-      />
+      <div className="cta-row">
+        <Link to="/" className="ghost">
+          ホームに戻る
+        </Link>
+        <Link to="/setup" className="primary">
+          セットアップへ
+        </Link>
+      </div>
     </div>
   )
 }
