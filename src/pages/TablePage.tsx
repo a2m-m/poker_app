@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import TopBar from '../components/TopBar.tsx'
 import UtilityActions, { type UtilityActionKey } from '../components/UtilityActions.tsx'
 import ActionPanel from '../components/ActionPanel.tsx'
+import ShowdownWinnerModal from '../components/ShowdownWinnerModal.tsx'
 import { useGameState } from '../app/GameContext.tsx'
 import { getCurrentPlayer, toCall } from '../domain/selectors.ts'
 import type { Action, Round } from '../domain/types.ts'
@@ -13,10 +14,17 @@ function TablePage() {
   const [lastAction, setLastAction] = useState('まだ行動がありません')
 
   const currentPlayer = useMemo(() => getCurrentPlayer(state), [state])
+  const activeShowdownPlayers = useMemo(
+    () => state.players.filter((player) => player.status === 'ACTIVE'),
+    [state.players],
+  )
   const callAmount = useMemo(
     () => (currentPlayer ? toCall(state, currentPlayer) : 0),
     [currentPlayer, state],
   )
+
+  const isShowdown = state.table.round === 'SHOWDOWN'
+  const showdownPot = state.table.pot
 
   const tableSnapshot = useMemo(
     () => {
@@ -82,6 +90,18 @@ function TablePage() {
     }
   }
 
+  const handleWinnerSelect = (winnerId: string) => {
+    const winnerName = activeShowdownPlayers.find((player) => player.id === winnerId)?.name
+
+    try {
+      dispatch({ type: 'ACTION_APPLY', payload: { type: 'RESOLVE_SHOWDOWN', winnerId } })
+      setLastAction(`${winnerName ?? '選択されたプレイヤー'} がポットを獲得しました`)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '不明なエラーが発生しました'
+      setLastAction(`勝者の決定に失敗しました: ${message}`)
+    }
+  }
+
   return (
     <div className="table-layout">
       <TopBar
@@ -133,6 +153,13 @@ function TablePage() {
           </div>
         </aside>
       </div>
+
+      <ShowdownWinnerModal
+        open={isShowdown && activeShowdownPlayers.length > 0}
+        players={activeShowdownPlayers}
+        pot={showdownPot}
+        onConfirm={handleWinnerSelect}
+      />
     </div>
   )
 }
