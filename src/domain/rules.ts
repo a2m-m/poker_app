@@ -1,9 +1,9 @@
-import type { GameStage } from './types.ts'
+import type { Round } from './types.ts'
 
-export const nextStage = (stage: GameStage): GameStage => {
-  const order: GameStage[] = ['preflop', 'flop', 'turn', 'river', 'showdown']
+export const nextStage = (stage: Round): Round => {
+  const order: Round[] = ['PREFLOP', 'FLOP', 'TURN', 'RIVER', 'SHOWDOWN']
   const currentIndex = order.indexOf(stage)
   return currentIndex >= 0 && currentIndex < order.length - 1
     ? order[currentIndex + 1]
-    : 'showdown'
+    : 'SHOWDOWN'
 }

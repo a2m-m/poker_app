@@ -1,15 +1,15 @@
-import type { GameState } from './types.ts'
+import type { Game } from './types.ts'
 
-export type HistoryEntry = GameState
+export type HistoryEntry = Game
 
 export const pushHistory = (
   history: HistoryEntry[],
-  snapshot: GameState,
+  snapshot: Game,
 ): HistoryEntry[] => [...history, snapshot]
 
 export const popHistory = (
   history: HistoryEntry[],
-): [HistoryEntry[], GameState | undefined] => {
+): [HistoryEntry[], Game | undefined] => {
   const nextHistory = [...history]
   const last = nextHistory.pop()
   return [nextHistory, last]

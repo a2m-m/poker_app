@@ -1,10 +1,10 @@
-import type { GameState } from './types.ts'
+import type { Game } from './types.ts'
 
-export const selectTableSummary = (state: GameState) => ({
+export const selectTableSummary = (state: Game) => ({
   name: state.tableName,
-  stage: state.stage,
-  pot: state.pot,
+  stage: state.table.round,
+  pot: state.table.pot,
   players: state.players.length,
 })
 
-export const selectCurrentPot = (state: GameState) => state.pot
+export const selectCurrentPot = (state: Game) => state.table.pot
