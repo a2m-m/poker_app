@@ -6,38 +6,68 @@ import {
   startHand as startHandRound,
 } from '../domain/init.ts'
 import type { Game, SetupConfig } from '../domain/types.ts'
+import { createHistoryEntry, pushHistory, undoLastAction, type HistoryEntry } from '../domain/undo.ts'
 
 export type GameStateAction =
   | { type: 'GAME_CREATE'; payload: SetupConfig }
   | { type: 'HAND_START' }
   | { type: 'ACTION_APPLY'; payload: GameAction }
+  | { type: 'ACTION_UNDO' }
+
+type GameState = {
+  game: Game
+  history: HistoryEntry[]
+}
+
+const createInitialState = (): GameState => ({
+  game: createInitialGameState(),
+  history: [],
+})
 
 const GameStateContext = createContext<
   | {
       state: Game
+      history: HistoryEntry[]
       dispatch: React.Dispatch<GameStateAction>
     }
   | undefined
 >(undefined)
 
-const gameStateReducer = (state: Game, action: GameStateAction): Game => {
+const gameStateReducer = (state: GameState, action: GameStateAction): GameState => {
   switch (action.type) {
     case 'GAME_CREATE':
-      return createGameFromSetup(action.payload)
-    case 'HAND_START':
-      return startHandRound(state)
-    case 'ACTION_APPLY':
-      return applyAction(state, action.payload)
+      return {
+        game: createGameFromSetup(action.payload),
+        history: [],
+      }
+    case 'HAND_START': {
+      const started = startHandRound(state.game)
+      return {
+        game: started,
+        history: pushHistory(state.history, createHistoryEntry(state.game, started)),
+      }
+    }
+    case 'ACTION_APPLY': {
+      const updated = applyAction(state.game, action.payload)
+      return {
+        game: updated,
+        history: pushHistory(state.history, createHistoryEntry(state.game, updated)),
+      }
+    }
+    case 'ACTION_UNDO': {
+      const undone = undoLastAction(state.game, state.history)
+      return undone
+    }
     default:
       return state
   }
 }
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(gameStateReducer, undefined, createInitialGameState)
+  const [state, dispatch] = useReducer(gameStateReducer, undefined, createInitialState)
 
   return (
-    <GameStateContext.Provider value={{ state, dispatch }}>
+    <GameStateContext.Provider value={{ state: state.game, history: state.history, dispatch }}>
       {children}
     </GameStateContext.Provider>
   )
