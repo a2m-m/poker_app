@@ -575,6 +575,73 @@
   color: #c6d5f3;
 }
 
+.modal-description {
+  margin: 0 0 10px;
+}
+
+.showdown-body {
+  display: grid;
+  gap: 12px;
+}
+
+.winner-list {
+  display: grid;
+  gap: 10px;
+}
+
+.winner-card {
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #e8edf5;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.winner-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.winner-card__name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.winner-card__stack {
+  margin: 0;
+  color: #c6d5f3;
+}
+
+.winner-card.is-selected {
+  border-color: rgba(106, 161, 255, 0.8);
+  box-shadow: 0 10px 28px rgba(106, 161, 255, 0.25);
+  background: rgba(106, 161, 255, 0.08);
+}
+
+.winner-card:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.winner-submit {
+  width: 100%;
+}
+
 .confirm-description {
   margin: 0 0 12px;
 }
