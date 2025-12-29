@@ -5,7 +5,10 @@ import '../App.css'
 export function AppShell() {
   return (
     <div className="app-shell">
-      <RouterProvider router={router} />
+      <div className="app-shell__backdrop" />
+      <div className="app-shell__frame">
+        <RouterProvider router={router} />
+      </div>
     </div>
   )
 }
