@@ -1,9 +1,32 @@
-import type { Game, Round } from './types.ts'
+import type { Action, Game, Round } from './types.ts'
+
+const toCall = (state: Game, playerIndex: number): number => {
+  const player = state.players[playerIndex]
+  if (!player) return 0
+  return Math.max(0, state.table.currentBet - player.betThisRound)
+}
+
+const findNextActivePlayerId = (
+  players: Game['players'],
+  startIndex: number,
+): string | undefined => {
+  if (players.length === 0) return undefined
+
+  for (let offset = 0; offset < players.length; offset += 1) {
+    const index = (startIndex + offset) % players.length
+    if (players[index]?.status === 'ACTIVE') {
+      return players[index]?.id
+    }
+  }
+
+  return undefined
+}
 
 export type GameAction =
   | { type: 'SET_TABLE_NAME'; name: string }
   | { type: 'ADVANCE_STAGE'; nextStage: Round }
   | { type: 'UPDATE_POT'; pot: number }
+  | { type: 'PLAYER_ACTION'; action: Action }
 
 export const applyAction = (
   state: Game,
@@ -16,6 +39,157 @@ export const applyAction = (
       return { ...state, table: { ...state.table, round: action.nextStage } }
     case 'UPDATE_POT':
       return { ...state, table: { ...state.table, pot: action.pot } }
+    case 'PLAYER_ACTION': {
+      const currentIndex = state.players.findIndex(
+        (player) => player.id === state.table.currentPlayerId,
+      )
+
+      if (currentIndex === -1) {
+        throw new Error('現在のプレイヤーが見つかりません')
+      }
+
+      const actor = state.players[currentIndex]
+      if (!actor || actor.status !== 'ACTIVE') {
+        throw new Error('Fold済みプレイヤーの手番です')
+      }
+
+      const players = [...state.players]
+      const table = { ...state.table }
+      const actionDetail = action.action
+
+      switch (actionDetail.type) {
+        case 'CHECK': {
+          const callAmount = toCall(state, currentIndex)
+          if (callAmount !== 0) {
+            throw new Error('CHECKはtoCallが0のときのみ可能です')
+          }
+          break
+        }
+        case 'CALL': {
+          const callAmount = toCall(state, currentIndex)
+          if (callAmount <= 0) {
+            throw new Error('CALLはtoCallが正のときのみ可能です')
+          }
+          if (actor.stack < callAmount) {
+            throw new Error('CALLに必要なスタックが不足しています')
+          }
+
+          const updated = {
+            ...actor,
+            stack: actor.stack - callAmount,
+            betThisRound: actor.betThisRound + callAmount,
+          }
+
+          players[currentIndex] = updated
+          table.pot += callAmount
+          break
+        }
+        case 'BET': {
+          const amount = actionDetail.amount ?? 0
+          if (table.currentBet !== 0) {
+            throw new Error('BETは現在のベットが0のときのみ可能です')
+          }
+          if (amount <= 0) {
+            throw new Error('BET金額が正しくありません')
+          }
+          if (actor.stack < amount) {
+            throw new Error('BETに必要なスタックが不足しています')
+          }
+
+          const updated = {
+            ...actor,
+            stack: actor.stack - amount,
+            betThisRound: actor.betThisRound + amount,
+          }
+
+          players[currentIndex] = updated
+          table.pot += amount
+          table.currentBet = updated.betThisRound
+          table.lastAggressorId = actor.id
+          break
+        }
+        case 'RAISE': {
+          const raiseTo = actionDetail.raiseTo ?? 0
+          if (table.currentBet <= 0) {
+            throw new Error('RAISEは既にベットがあるときのみ可能です')
+          }
+          if (raiseTo <= table.currentBet) {
+            throw new Error('RAISE額が現在のベットを上回っていません')
+          }
+
+          const delta = raiseTo - actor.betThisRound
+          if (delta <= 0) {
+            throw new Error('RAISE額が現在の投入額を上回っていません')
+          }
+          if (actor.stack < delta) {
+            throw new Error('RAISEに必要なスタックが不足しています')
+          }
+
+          const updated = {
+            ...actor,
+            stack: actor.stack - delta,
+            betThisRound: raiseTo,
+          }
+
+          players[currentIndex] = updated
+          table.pot += delta
+          table.currentBet = raiseTo
+          table.lastAggressorId = actor.id
+          break
+        }
+        case 'FOLD': {
+          players[currentIndex] = { ...actor, status: 'FOLDED' }
+          break
+        }
+        default:
+          break
+      }
+
+      const activePlayers = players.filter((p) => p.status === 'ACTIVE')
+
+      if (activePlayers.length <= 1) {
+        const winner = activePlayers[0]
+        const potAmount = table.pot
+
+        const settledPlayers = players.map((player) => {
+          if (winner && player.id === winner.id) {
+            return {
+              ...player,
+              stack: player.stack + potAmount,
+              betThisRound: 0,
+            }
+          }
+          return { ...player, betThisRound: 0 }
+        })
+
+        return {
+          ...state,
+          players: settledPlayers,
+          table: {
+            ...table,
+            pot: 0,
+            currentBet: 0,
+            currentPlayerId: '',
+            lastAggressorId: undefined,
+            round: 'SHOWDOWN',
+          },
+        }
+      }
+
+      table.currentBet = players.reduce(
+        (max, player) => Math.max(max, player.betThisRound),
+        0,
+      )
+
+      const nextPlayerId =
+        findNextActivePlayerId(players, (currentIndex + 1) % players.length) ?? ''
+
+      return {
+        ...state,
+        players,
+        table: { ...table, currentPlayerId: nextPlayerId },
+      }
+    }
     default:
       return state
   }
