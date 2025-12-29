@@ -2,20 +2,33 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/TopBar.tsx'
 import UtilityActions, { type UtilityActionKey } from '../components/UtilityActions.tsx'
+import { useGameState } from '../app/GameContext.tsx'
+import type { Round } from '../domain/types.ts'
 
 function TablePage() {
+  const { state } = useGameState()
   const [lastUtilityAction, setLastUtilityAction] = useState('未操作')
 
   const tableSnapshot = useMemo(
-    () => ({
-      tableName: 'Pass & Play Table',
-      round: 'Preflop',
-      pot: 320,
-      smallBlind: 50,
-      bigBlind: 100,
-      buttonSeat: '3',
-    }),
-    [],
+    () => {
+      const roundLabel: Record<Round, string> = {
+        PREFLOP: 'Preflop',
+        FLOP: 'Flop',
+        TURN: 'Turn',
+        RIVER: 'River',
+        SHOWDOWN: 'Showdown',
+      }
+
+      return {
+        tableName: state.tableName,
+        round: roundLabel[state.table.round],
+        pot: state.table.pot,
+        smallBlind: state.table.sb,
+        bigBlind: state.table.bb,
+        buttonSeat: state.players.length > 0 ? String(state.table.buttonIndex + 1) : '-',
+      }
+    },
+    [state],
   )
 
   const handleUtilitySelect = (action: UtilityActionKey) => {
