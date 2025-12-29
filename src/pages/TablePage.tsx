@@ -4,6 +4,8 @@ import TopBar from '../components/TopBar.tsx'
 import UtilityActions, { type UtilityActionKey } from '../components/UtilityActions.tsx'
 import ActionPanel from '../components/ActionPanel.tsx'
 import ShowdownWinnerModal from '../components/ShowdownWinnerModal.tsx'
+import PlayerGrid from '../components/PlayerGrid.tsx'
+import type { PlayerCardProps } from '../components/PlayerCard.tsx'
 import { useGameState } from '../app/GameContext.tsx'
 import { getCurrentPlayer, toCall } from '../domain/selectors.ts'
 import type { Action, Round } from '../domain/types.ts'
@@ -61,6 +63,33 @@ function TablePage() {
     }
   }, [state.table.round])
 
+  const playerCards = useMemo<PlayerCardProps[]>(() => {
+    const playerCount = state.players.length
+    const sbIndex = playerCount > 0 ? (state.table.buttonIndex + 1) % playerCount : -1
+    const bbIndex = playerCount > 0 ? (state.table.buttonIndex + 2) % playerCount : -1
+
+    return state.players.map((player, index) => {
+      const badges = [] as string[]
+
+      if (index === state.table.buttonIndex) badges.push('BTN')
+      if (index === sbIndex) badges.push('SB')
+      if (index === bbIndex) badges.push('BB')
+      if (player.status === 'FOLDED') badges.push('FOLD')
+      if (player.id === state.table.currentPlayerId) badges.push('TURN')
+
+      return {
+        id: player.id,
+        seat: index + 1,
+        name: player.name,
+        stack: player.stack,
+        betThisRound: player.betThisRound,
+        badges,
+        isTurn: player.id === state.table.currentPlayerId,
+        isFolded: player.status === 'FOLDED',
+      }
+    })
+  }, [state.players, state.table.buttonIndex, state.table.currentPlayerId])
+
   const handleUtilitySelect = (action: UtilityActionKey) => {
     const actionLabel: Record<UtilityActionKey, string> = {
       logs: 'ログ',
@@ -115,21 +144,13 @@ function TablePage() {
 
       <div className="table-layout__body">
         <section className="table-layout__canvas">
-          <div className="table-placeholder">
+          <div className="table-canvas__header">
             <div>
-              <p className="eyebrow">メインエリア</p>
-              <h1>手番入力のテストキャンバス</h1>
-              <p className="lede">
-                プレイヤーグリッドの代わりに、現在の手番と To Call を確認できる ActionPanel を配置しています。
-              </p>
-              {roundGuide && (
-                <div className="stage-guide" role="status">
-                  <p className="label">ガイド</p>
-                  <p className="stage-guide__message">{roundGuide}</p>
-                </div>
-              )}
+              <p className="eyebrow">/table</p>
+              <h1>Player Grid</h1>
+              <p className="lede">手番やブラインドの位置が一目で分かるプレイヤー一覧です。</p>
             </div>
-            <div className="placeholder-actions">
+            <div className="table-canvas__links">
               <Link to="/" className="ghost">
                 ホームに戻る
               </Link>
@@ -138,6 +159,15 @@ function TablePage() {
               </Link>
             </div>
           </div>
+
+          <PlayerGrid players={playerCards} />
+
+          {roundGuide && (
+            <div className="stage-guide" role="status">
+              <p className="label">ガイド</p>
+              <p className="stage-guide__message">{roundGuide}</p>
+            </div>
+          )}
 
           <ActionPanel onAction={handleAction} />
         </section>
