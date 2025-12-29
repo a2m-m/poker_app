@@ -415,6 +415,115 @@
   border-color: rgba(106, 161, 255, 0.4);
 }
 
+.action-button--primary {
+  background: linear-gradient(135deg, rgba(106, 209, 255, 0.22), rgba(107, 123, 255, 0.18));
+  border-color: rgba(106, 161, 255, 0.35);
+}
+
+.action-button--secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.action-button--danger {
+  background: rgba(255, 113, 113, 0.08);
+  border-color: rgba(255, 113, 113, 0.4);
+  color: #ffc8c8;
+}
+
+.action-button.is-active {
+  box-shadow: 0 0 0 2px rgba(106, 161, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.action-panel {
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.action-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.action-panel__title {
+  margin: 2px 0;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+}
+
+.action-panel__hint {
+  margin: 0;
+  color: #b9c8e4;
+}
+
+.to-call {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(106, 161, 255, 0.1);
+  border: 1px solid rgba(106, 161, 255, 0.35);
+  min-width: 160px;
+}
+
+.to-call__value {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #bfe0ff;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.amount-input {
+  display: grid;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.amount-input__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.amount-input__controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.amount-input input[type='number'] {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8edf5;
+  padding: 10px 12px;
+  font-size: 1.1rem;
+}
+
+.amount-input__hint {
+  margin: 4px 0 0;
+  color: #b9c8e4;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
