@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/TopBar.tsx'
-import UtilityActions, { UtilityActionKey } from '../components/UtilityActions.tsx'
+import UtilityActions, { type UtilityActionKey } from '../components/UtilityActions.tsx'
 
 function TablePage() {
   const [lastUtilityAction, setLastUtilityAction] = useState('未操作')
