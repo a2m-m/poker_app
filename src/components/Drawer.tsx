@@ -7,6 +7,8 @@ type DrawerProps = {
 }
 
 export function Drawer({ open, title, children }: DrawerProps) {
+  if (!open) return null
+
   return (
     <aside className={`drawer ${open ? 'open' : ''}`} aria-label={title}>
       <div className="drawer-header">{title}</div>

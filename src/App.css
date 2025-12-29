@@ -161,6 +161,11 @@
   color: #c6d5f3;
 }
 
+.drawer__footer {
+  margin-top: 12px;
+  text-align: right;
+}
+
 .step-list {
   margin: 0;
   padding-left: 18px;
@@ -342,6 +347,88 @@
   border: 1px dashed rgba(255, 255, 255, 0.15);
   border-radius: 14px;
   padding: 14px;
+}
+
+.action-log {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.action-log__title {
+  margin: 4px 0;
+}
+
+.action-log__empty {
+  margin: 0;
+  color: #a7badf;
+}
+
+.action-log__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.action-log__item {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 90px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.action-log__identity {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-log__player {
+  font-weight: 800;
+}
+
+.action-log__round {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(106, 161, 255, 0.16);
+  color: #bcd7ff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.action-log__detail {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.action-log__action {
+  font-weight: 700;
+}
+
+.action-log__amount {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-variant-numeric: tabular-nums;
+}
+
+.action-log__time {
+  text-align: right;
+  color: #a7badf;
+  font-variant-numeric: tabular-nums;
 }
 
 .stage-guide {
