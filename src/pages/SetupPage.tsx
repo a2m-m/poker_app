@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useGameState } from '../app/GameContext.tsx'
+import type { SetupConfig } from '../domain/types.ts'
 
 type PlayerDraft = {
   name: string
@@ -11,6 +13,7 @@ const MAX_PLAYERS = 9
 
 function SetupPage() {
   const navigate = useNavigate()
+  const { dispatch } = useGameState()
   const [playerCount, setPlayerCount] = useState(6)
   const [players, setPlayers] = useState<PlayerDraft[]>(() =>
     Array.from({ length: MAX_PLAYERS }, () => ({ name: '', stack: '' })),
@@ -66,6 +69,19 @@ function SetupPage() {
 
   const startTable = () => {
     if (!canStart) return
+    const setupConfig: SetupConfig = {
+      tableName: undefined,
+      smallBlind: Number(smallBlind),
+      bigBlind: Number(bigBlind),
+      buttonIndex: Number(buttonSeat) - 1,
+      players: activePlayers.map((player) => ({
+        name: player.name.trim(),
+        stack: Number(player.stack),
+      })),
+    }
+
+    dispatch({ type: 'GAME_CREATE', payload: setupConfig })
+    dispatch({ type: 'HAND_START' })
     navigate('/table')
   }
 
