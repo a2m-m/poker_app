@@ -1,21 +1,21 @@
-import type { GameStage, GameState } from './types.ts'
+import type { Game, Round } from './types.ts'
 
 export type GameAction =
   | { type: 'SET_TABLE_NAME'; name: string }
-  | { type: 'ADVANCE_STAGE'; nextStage: GameStage }
+  | { type: 'ADVANCE_STAGE'; nextStage: Round }
   | { type: 'UPDATE_POT'; pot: number }
 
 export const applyAction = (
-  state: GameState,
+  state: Game,
   action: GameAction,
-): GameState => {
+): Game => {
   switch (action.type) {
     case 'SET_TABLE_NAME':
       return { ...state, tableName: action.name }
     case 'ADVANCE_STAGE':
-      return { ...state, stage: action.nextStage }
+      return { ...state, table: { ...state.table, round: action.nextStage } }
     case 'UPDATE_POT':
-      return { ...state, pot: action.pot }
+      return { ...state, table: { ...state.table, pot: action.pot } }
     default:
       return state
   }
