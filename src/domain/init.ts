@@ -109,12 +109,34 @@ const applyBlind = (game: Game, playerIndex: number, amount: number): Game => {
   }
 }
 
+const removeBrokePlayers = (game: Game): Game => {
+  const activePlayers = game.players.filter((player) => player.stack > 0)
+
+  if (activePlayers.length === game.players.length) return game
+
+  const normalizedButtonIndex =
+    activePlayers.length > 0 ? game.table.buttonIndex % activePlayers.length : 0
+
+  return {
+    ...game,
+    players: activePlayers,
+    table: {
+      ...game.table,
+      buttonIndex: normalizedButtonIndex,
+      currentPlayerId: '',
+      lastAggressorId: undefined,
+    },
+  }
+}
+
 export const startHand = (game: Game): Game => {
-  if (game.players.length < 2) {
+  const sanitizedGame = removeBrokePlayers(game)
+
+  if (sanitizedGame.players.length < 2) {
     throw new Error('プレイヤーが2人以上必要です')
   }
 
-  const preflopReady = startRound(game, 'PREFLOP')
+  const preflopReady = startRound(sanitizedGame, 'PREFLOP')
   const sbIndex = (preflopReady.table.buttonIndex + 1) % preflopReady.players.length
   const bbIndex = (preflopReady.table.buttonIndex + 2) % preflopReady.players.length
 
