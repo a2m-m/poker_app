@@ -1,8 +1,7 @@
 import {
   createContext,
+  useCallback,
   useContext,
-  useEffect,
-  useReducer,
   useRef,
   useState,
   type ReactNode,
@@ -137,29 +136,41 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     return initialLoad.status === 'invalid' ? { status: 'invalid' } : { status: 'empty' }
   })
 
-  const [state, dispatch] = useReducer(
-    gameStateReducer,
-    undefined,
-    () =>
-      createInitialState(initialLoad.status === 'ok' ? initialLoad.state : undefined)
+  const [state, setState] = useState(() =>
+    createInitialState(initialLoad.status === 'ok' ? initialLoad.state : undefined)
   )
 
-  useEffect(() => {
-    if (!persistenceEnabled) return
+  const persistStateIfNeeded = useCallback(
+    (nextState: GameState) => {
+      if (!persistenceEnabled) return
 
-    if (skipInitialSave.current) {
-      skipInitialSave.current = false
-      return
-    }
+      if (skipInitialSave.current) {
+        skipInitialSave.current = false
+        return
+      }
 
-    const savedAt = savePersistedState(state)
-    setPersistence({ status: 'ok', savedAt, storedVersion: SCHEMA_VERSION })
-  }, [state, persistenceEnabled])
+      const savedAt = savePersistedState(nextState)
+      setPersistence({ status: 'ok', savedAt, storedVersion: SCHEMA_VERSION })
+    },
+    [persistenceEnabled]
+  )
+
+  const dispatch: React.Dispatch<GameStateAction> = useCallback(
+    (action) => {
+      setState((current) => {
+        const next = gameStateReducer(current, action)
+        persistStateIfNeeded(next)
+        return next
+      })
+    },
+    [persistStateIfNeeded]
+  )
 
   const clearPersistence = () => {
     clearPersistedState()
     setPersistence({ status: 'empty' })
     setPersistenceEnabled(true)
+    skipInitialSave.current = true
   }
 
   return (
