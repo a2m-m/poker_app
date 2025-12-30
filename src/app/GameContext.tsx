@@ -1,4 +1,11 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { applyAction, type GameAction } from '../domain/actions.ts'
 import {
   createGameFromSetup,
@@ -8,6 +15,14 @@ import {
 import { createActionLogEntry, type ActionLogEntry } from '../domain/logs.ts'
 import type { Game, SetupConfig } from '../domain/types.ts'
 import { createHistoryEntry, pushHistory, undoLastAction, type HistoryEntry } from '../domain/undo.ts'
+import {
+  clearPersistedState,
+  loadPersistedState,
+  savePersistedState,
+  SCHEMA_VERSION,
+  type LoadResult,
+  type PersistedStateSnapshot,
+} from '../persistence/localStorage.ts'
 
 export type GameStateAction =
   | { type: 'GAME_CREATE'; payload: SetupConfig }
@@ -22,12 +37,19 @@ type GameState = {
   logMarkers: boolean[]
 }
 
-const createInitialState = (): GameState => ({
-  game: createInitialGameState(),
-  history: [],
-  logs: [],
-  logMarkers: [],
-})
+const createInitialState = (persisted?: PersistedStateSnapshot): GameState =>
+  persisted ?? {
+    game: createInitialGameState(),
+    history: [],
+    logs: [],
+    logMarkers: [],
+  }
+
+type PersistenceState =
+  | { status: 'ok'; savedAt: string; storedVersion: number }
+  | { status: 'mismatch'; savedAt?: string; storedVersion: number }
+  | { status: 'invalid' }
+  | { status: 'empty' }
 
 const GameStateContext = createContext<
   | {
@@ -35,6 +57,9 @@ const GameStateContext = createContext<
       history: HistoryEntry[]
       logs: ActionLogEntry[]
       dispatch: React.Dispatch<GameStateAction>
+      persistence: PersistenceState
+      clearPersistence: () => void
+      persistenceEnabled: boolean
     }
   | undefined
 >(undefined)
@@ -92,11 +117,73 @@ const gameStateReducer = (state: GameState, action: GameStateAction): GameState 
 }
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(gameStateReducer, undefined, createInitialState)
+  const [initialLoad] = useState<LoadResult>(() => loadPersistedState())
+  const [persistenceEnabled, setPersistenceEnabled] = useState(
+    initialLoad.status !== 'mismatch'
+  )
+  const skipInitialSave = useRef(initialLoad.status !== 'ok')
+  const [persistence, setPersistence] = useState<PersistenceState>(() => {
+    if (initialLoad.status === 'ok') {
+      return { status: 'ok', savedAt: initialLoad.savedAt, storedVersion: SCHEMA_VERSION }
+    }
+    if (initialLoad.status === 'mismatch') {
+      return {
+        status: 'mismatch',
+        savedAt: initialLoad.savedAt,
+        storedVersion: initialLoad.storedVersion,
+      }
+    }
+    return initialLoad.status === 'invalid' ? { status: 'invalid' } : { status: 'empty' }
+  })
+
+  const [state, setState] = useState(() =>
+    createInitialState(initialLoad.status === 'ok' ? initialLoad.state : undefined)
+  )
+
+  const persistStateIfNeeded = useCallback(
+    (nextState: GameState) => {
+      if (!persistenceEnabled) return
+
+      if (skipInitialSave.current) {
+        skipInitialSave.current = false
+        return
+      }
+
+      const savedAt = savePersistedState(nextState)
+      setPersistence({ status: 'ok', savedAt, storedVersion: SCHEMA_VERSION })
+    },
+    [persistenceEnabled]
+  )
+
+  const dispatch: React.Dispatch<GameStateAction> = useCallback(
+    (action) => {
+      setState((current) => {
+        const next = gameStateReducer(current, action)
+        persistStateIfNeeded(next)
+        return next
+      })
+    },
+    [persistStateIfNeeded]
+  )
+
+  const clearPersistence = () => {
+    clearPersistedState()
+    setPersistence({ status: 'empty' })
+    setPersistenceEnabled(true)
+    skipInitialSave.current = true
+  }
 
   return (
     <GameStateContext.Provider
-      value={{ state: state.game, history: state.history, logs: state.logs, dispatch }}
+      value={{
+        state: state.game,
+        history: state.history,
+        logs: state.logs,
+        dispatch,
+        persistence,
+        clearPersistence,
+        persistenceEnabled,
+      }}
     >
       {children}
     </GameStateContext.Provider>
