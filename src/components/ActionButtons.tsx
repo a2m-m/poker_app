@@ -1,7 +1,7 @@
-import type { ActionType } from '../domain/types.ts'
+import type { ActionAvailability, ActionType } from '../domain/types.ts'
 
 type ActionButtonsProps = {
-  actions: ActionType[]
+  actions: ActionAvailability[]
   selected?: ActionType | null
   onSelect: (action: ActionType) => void
 }
@@ -25,16 +25,18 @@ const variantClass: Record<ActionType, string> = {
 function ActionButtons({ actions, onSelect, selected = null }: ActionButtonsProps) {
   return (
     <div className="action-grid" role="group" aria-label="選択可能なアクション">
-      {actions.map((action) => {
-        const isActive = selected === action
+      {actions.map((entry) => {
+        const isActive = selected === entry.action
         return (
           <button
-            key={action}
+            key={entry.action}
             type="button"
-            className={`action-button ${variantClass[action]} ${isActive ? 'is-active' : ''}`}
-            onClick={() => onSelect(action)}
+            className={`action-button ${variantClass[entry.action]} ${isActive ? 'is-active' : ''}`}
+            onClick={() => onSelect(entry.action)}
+            disabled={!entry.enabled}
+            title={entry.reason}
           >
-            {LABELS[action]}
+            {LABELS[entry.action]}
           </button>
         )
       })}
