@@ -18,6 +18,8 @@ npm run dev
 - `npm run typecheck`: 型チェックのみを実行します。
 - `npm run lint` / `npm run lint:fix`: ESLint のチェックと自動修正を実行します。
 - `npm run format`: Prettier でコード整形を行います。
+- `npm run build:pages`: GitHub Pages 用に `GITHUB_REPOSITORY` を設定してビルドします。
+- `npm run deploy`: `gh-pages` ブランチへ静的ファイルを公開します（ローカル確認用）。
 
 ## ディレクトリ概要
 
