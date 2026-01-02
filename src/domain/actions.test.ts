@@ -90,4 +90,33 @@ describe('applyAction invariants', () => {
       next.players.reduce((max, player) => Math.max(max, player.betThisRound), 0),
     )
   })
+
+  it('ショーダウン後に残り1人でもポットを分配して状態を維持する', () => {
+    const game: Game = {
+      tableName: 'Test',
+      players: [
+        { id: 'p1', name: 'Alice', stack: 0, betThisRound: 0, status: 'ACTIVE' },
+        { id: 'p2', name: 'Bob', stack: 0, betThisRound: 0, status: 'ACTIVE' },
+      ],
+      table: {
+        pot: 200,
+        round: 'SHOWDOWN',
+        sb: 50,
+        bb: 100,
+        buttonIndex: 0,
+        currentBet: 0,
+        currentPlayerId: 'p1',
+        lastAggressorId: undefined,
+      },
+    }
+
+    const resolved = applyAction(game, { type: 'RESOLVE_SHOWDOWN', winnerId: 'p1' })
+
+    expect(resolved.players).toHaveLength(1)
+    expect(resolved.players[0]).toMatchObject({ id: 'p1', stack: 200, betThisRound: 0 })
+    expect(resolved.table.pot).toBe(0)
+    expect(resolved.table.currentBet).toBe(0)
+    expect(resolved.table.currentPlayerId).toBe('')
+    expect(resolved.table.round).toBe('SHOWDOWN')
+  })
 })

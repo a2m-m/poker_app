@@ -218,7 +218,7 @@ function TablePage() {
       </div>
 
       <ShowdownWinnerModal
-        open={isShowdown && activeShowdownPlayers.length > 0}
+        open={isShowdown && showdownPot > 0 && activeShowdownPlayers.length > 0}
         players={activeShowdownPlayers}
         pot={showdownPot}
         onConfirm={handleWinnerSelect}

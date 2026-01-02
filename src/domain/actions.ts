@@ -54,14 +54,16 @@ const settleHandAndStartNext = (state: Game, winnerId: string): Game => {
     status: 'ACTIVE' as const,
   }))
 
+  const activePlayers = resetPlayers.filter((player) => player.stack > 0)
+
   const nextButtonIndex =
-    resetPlayers.length > 0
-      ? (state.table.buttonIndex + 1) % resetPlayers.length
+    activePlayers.length > 0
+      ? (state.table.buttonIndex + 1) % activePlayers.length
       : state.table.buttonIndex
 
   const nextGame: Game = {
     ...state,
-    players: resetPlayers,
+    players: activePlayers,
     table: {
       ...state.table,
       pot: 0,
@@ -69,7 +71,12 @@ const settleHandAndStartNext = (state: Game, winnerId: string): Game => {
       currentPlayerId: '',
       lastAggressorId: undefined,
       buttonIndex: nextButtonIndex,
+      round: state.table.round,
     },
+  }
+
+  if (activePlayers.length < 2) {
+    return nextGame
   }
 
   return startHand(nextGame)
