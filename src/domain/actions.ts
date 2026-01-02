@@ -75,6 +75,22 @@ const settleHandAndStartNext = (state: Game, winnerId: string): Game => {
   return startHand(nextGame)
 }
 
+const ensureNonNegative = (game: Game): Game => {
+  const hasNegativePlayer = game.players.some(
+    (player) => player.stack < 0 || player.betThisRound < 0,
+  )
+
+  if (hasNegativePlayer) {
+    throw new Error('プレイヤーのスタックまたはベットが負の値です')
+  }
+
+  if (game.table.pot < 0 || game.table.currentBet < 0) {
+    throw new Error('ポットまたは現在のベットが負の値です')
+  }
+
+  return game
+}
+
 export type GameAction =
   | { type: 'SET_TABLE_NAME'; name: string }
   | { type: 'ADVANCE_STAGE'; nextStage: Round }
@@ -88,17 +104,17 @@ export const applyAction = (
 ): Game => {
   switch (action.type) {
     case 'SET_TABLE_NAME':
-      return { ...state, tableName: action.name }
+      return ensureNonNegative({ ...state, tableName: action.name })
     case 'ADVANCE_STAGE':
-      return { ...state, table: { ...state.table, round: action.nextStage } }
+      return ensureNonNegative({ ...state, table: { ...state.table, round: action.nextStage } })
     case 'UPDATE_POT':
-      return { ...state, table: { ...state.table, pot: action.pot } }
+      return ensureNonNegative({ ...state, table: { ...state.table, pot: action.pot } })
     case 'RESOLVE_SHOWDOWN': {
       if (state.table.round !== 'SHOWDOWN') {
         throw new Error('ショーダウン中のみ勝者を決定できます')
       }
 
-      return settleHandAndStartNext(state, action.winnerId)
+      return ensureNonNegative(settleHandAndStartNext(state, action.winnerId))
     }
     case 'PLAYER_ACTION': {
       const currentIndex = state.players.findIndex(
@@ -132,7 +148,7 @@ export const applyAction = (
             throw new Error('CALLはtoCallが正のときのみ可能です')
           }
           if (actor.stack < callAmount) {
-            throw new Error('CALLに必要なスタックが不足しています')
+            throw new Error('CALLに必要なスタックが不足しています（サイドポット未対応）')
           }
 
           const updated = {
@@ -183,7 +199,7 @@ export const applyAction = (
             throw new Error('RAISE額が現在の投入額を上回っていません')
           }
           if (actor.stack < delta) {
-            throw new Error('RAISEに必要なスタックが不足しています')
+            throw new Error('RAISEに必要なスタックが不足しています（サイドポット未対応）')
           }
 
           const updated = {
@@ -235,14 +251,14 @@ export const applyAction = (
           : nextPlayerId === roundStartPlayerId)
 
       if (shouldAdvanceRound) {
-        return advanceRound({ ...state, players, table })
+        return ensureNonNegative(advanceRound({ ...state, players, table }))
       }
 
-      return {
+      return ensureNonNegative({
         ...state,
         players,
         table: { ...table, currentPlayerId: nextPlayerId },
-      }
+      })
     }
     default:
       return state

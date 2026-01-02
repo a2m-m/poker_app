@@ -57,11 +57,16 @@ function SetupPage() {
     setButtonSeat(String(seat))
   }
 
-  const isSmallBlindValid = smallBlind.trim() !== '' && Number(smallBlind) > 0
-  const isBigBlindValid =
-    bigBlind.trim() !== '' && Number(bigBlind) > 0 && Number(bigBlind) >= Number(smallBlind || 0)
+  const smallBlindValue = Number(smallBlind)
+  const bigBlindValue = Number(bigBlind)
+
+  const isSmallBlindValid = smallBlind.trim() !== '' && smallBlindValue > 0
+  const isBigBlindValid = bigBlind.trim() !== '' && bigBlindValue > 0 && bigBlindValue >= smallBlindValue
   const arePlayersValid = activePlayers.every(
-    (player) => player.name.trim() !== '' && Number(player.stack) > 0,
+    (player) =>
+      player.name.trim() !== '' &&
+      Number(player.stack) > 0 &&
+      (!isBigBlindValid || Number(player.stack) >= bigBlindValue),
   )
   const isButtonSeatValid = buttonSeat !== '' && Number(buttonSeat) >= 1 && Number(buttonSeat) <= playerCount
 
@@ -141,6 +146,9 @@ function SetupPage() {
                     onChange={(event) => handlePlayerChange(index, 'stack', event.target.value)}
                     placeholder="例: 1000"
                   />
+                  {isBigBlindValid && Number(player.stack) > 0 && Number(player.stack) < bigBlindValue && (
+                    <p className="field__error">BB 以上のスタックが必要です。</p>
+                  )}
                 </div>
               </div>
             ))}

@@ -4,6 +4,12 @@ export type PlayerStatus = 'ACTIVE' | 'FOLDED'
 
 export type ActionType = 'CHECK' | 'CALL' | 'BET' | 'RAISE' | 'FOLD'
 
+export type ActionAvailability = {
+  action: ActionType
+  enabled: boolean
+  reason?: string
+}
+
 export type Player = {
   id: string
   name: string

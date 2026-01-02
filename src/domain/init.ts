@@ -130,10 +130,26 @@ const removeBrokePlayers = (game: Game): Game => {
 }
 
 export const startHand = (game: Game): Game => {
+  if (game.table.sb <= 0 || game.table.bb <= 0) {
+    throw new Error('ブラインドが未設定です')
+  }
+
+  if (game.table.bb < game.table.sb) {
+    throw new Error('ビッグブラインドはスモールブラインド以上である必要があります')
+  }
+
   const sanitizedGame = removeBrokePlayers(game)
 
   if (sanitizedGame.players.length < 2) {
     throw new Error('プレイヤーが2人以上必要です')
+  }
+
+  const lacksBlindStack = sanitizedGame.players.some(
+    (player) => player.stack < sanitizedGame.table.bb,
+  )
+
+  if (lacksBlindStack) {
+    throw new Error('ブラインドを支払うスタックが不足しています（サイドポット未対応）')
   }
 
   const preflopReady = startRound(sanitizedGame, 'PREFLOP')
