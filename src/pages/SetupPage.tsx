@@ -14,7 +14,7 @@ const MAX_PLAYERS = 9
 function SetupPage() {
   const navigate = useNavigate()
   const { dispatch } = useGameState()
-  const [playerCount, setPlayerCount] = useState(6)
+  const [playerCount, setPlayerCount] = useState(MIN_PLAYERS)
   const [players, setPlayers] = useState<PlayerDraft[]>(() =>
     Array.from({ length: MAX_PLAYERS }, () => ({ name: '', stack: '' })),
   )
